@@ -1,4 +1,3 @@
-# app/main.py
 import hashlib
 import json
 import time
