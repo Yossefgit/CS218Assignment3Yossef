@@ -5,6 +5,16 @@ github link: https://github.com/Yossefgit/CS218Assignment3Yossef
 my public ALB URL:
 http://cs218-a3-alb-500597902.us-east-1.elb.amazonaws.com
 
+ECS service name:
+cs218-a3-service
+
+for secret handling for my local secret handling i used .env and for the network AWS secret handeling i used the AWS SSM store to store the database password
+
+migration are executed using alembic and when the container executes this command the migration is executed - python -m alembic upgrade head
+
+database type used is RDS and the instance type for it is db.t4g.micro
+
+my ECS instance type is 256 CPU 512 MB memory 
 
 
 local setup steps 
@@ -68,3 +78,29 @@ median = 9.6ms
 max = 257.21ms
 P90 = 34.22ms
 P95 = 65.22ms
+
+
+
+AWS deployment steps
+
+1 run:
+aws configure
+and enter in the acc information. for the region i used us-east-1.
+2 create ECR repository:
+aws ecr create-repository --repository-name cs218-a3-api
+3 we now log the docker into the ECR so need to run
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 210190733205.dkr.ecr.us-east-1.amazonaws.com
+4 now we need to build and push the docker image so this takes 3 commands that we need to run top to bottom
+a
+docker build -t cs218assignment3yossef-api .
+b
+docker tag cs218assignment3yossef-api:latest 210190733205.dkr.ecr.us-east-1.amazonaws.com/cs218-a3-api:latest
+c
+docker push 210190733205.dkr.ecr.us-east-1.amazonaws.com/cs218-a3-api:latest
+5 we create the RDS database in the AWS console website. most things i kept default but the key things are making sure it is:
+a PostgreSQL
+b the instance type is db.t4g.micro
+6 I stored the database password in AWS SSM store 
+7 I than created ECS task definition which runs on AWS fargate, and used the image from the ECR and also included the cloudwatch for the logs.
+8 I created the ECS service
+9 I made the ALB and connected it to the ECS service
